@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Responsive Banking Interface</title>
+  <style>
+    /* ===== Base Styles ===== */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: Arial, Helvetica, sans-serif; background: #f4f6fb; color: #222;
+      display: flex; justify-content: center; padding: 20px;
+    }
+    .app {
+      width: 100%; max-width: 800px; background: #fff; border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 20px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+
+    header { display: flex; justify-content: space-between; align-items: center; }
+    header h1 { margin: 0; font-size: 1.6rem; }
+    .balance-card {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #0d6efd; color: #fff; padding: 16px; border-radius: 10px;
+    }
+    .balance-card .amount { font-size: 2rem; font-weight: bold; }
+
+    /* ===== Controls ===== */
+    .controls { display: flex; gap: 12px; }
+    .card {
+      flex: 1; border: 1px solid #e6e6e6; border-radius: 10px; padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .card h3 { margin: 0; }
+    label { font-size: 0.9rem; }
+    input {
+      padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem;
+    }
+    button {
+      padding: 10px 14px; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;
+    }
+    .deposit { background: #198754; color: #fff; }
+    .withdraw { background: #dc3545; color: #fff; }
+    .msg { min-height: 1.2em; font-size: 0.9rem; }
+    .msg.ok { color: #198754; }
+    .msg.err { color: #dc3545; }
+
+    /* ===== Transaction List ===== */
+    .history { border-top: 1px dashed #ddd; padding-top: 16px; }
+    .history h3 { margin: 0 0 8px; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+    .pos { color: #198754; }
+    .neg { color: #dc3545; }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 600px) {
+      header { flex-direction: column; gap: 8px; }
+      .controls { flex-direction: column; }
+      .balance-card { flex-direction: column; gap: 8px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>My Bank</h1>
+      <div class="balance-card">
+        <div>Current Balance</div>
+        <div class="amount" id="balance">₹ 0</div>
+      </div>
+    </header>
+
+    <section class="controls">
+      <div class="card">
+        <h3>Deposit</h3>
+        <label for="depAmt">Amount</label>
+        <input type="number" id="depAmt" placeholder="Enter amount" />
+        <button class="deposit" id="depBtn">Deposit</button>
+        <div class="msg" id="depMsg"></div>
+      </div>
+      <div class="card">
+        <h3>Withdraw</h3>
+        <label for="withAmt">Amount</label>
+        <input type="number" id="withAmt" placeholder="Enter amount" />
+        <button class="withdraw" id="withBtn">Withdraw</button>
+        <div class="msg" id="withMsg"></div>
+      </div>
+    </section>
+
+    <section class="history">
+      <h3>Transaction History</h3>
+      <ul id="historyList"></ul>
+    </section>
+  </div>
+
+  <script>
+    // ===== State =====
+    let balance = 0;
+    const balanceEl = document.getElementById('balance');
+    const historyList = document.getElementById('historyList');
+
+    // ===== Helpers =====
+    function updateBalance() {
+      balanceEl.textContent = `₹ ${balance}`;
+    }
+
+    function addHistory(label, amount) {
+      const li = document.createElement('li');
+      const left = document.createElement('span');
+      const right = document.createElement('span');
+      left.textContent = label;
+      right.textContent = (amount > 0 ? '+₹ ' : '-₹ ') + Math.abs(amount);
+      right.className = amount > 0 ? 'pos' : 'neg';
+      li.append(left, right);
+      historyList.prepend(li);
+    }
+
+    function validateAmount(val) {
+      if (isNaN(val) || val <= 0) return 'Enter a valid amount greater than 0';
+      return '';
+    }
+
+    // ===== Event Handlers =====
+    document.getElementById('depBtn').addEventListener('click', () => {
+      const input = document.getElementById('depAmt');
+      const msg = document.getElementById('depMsg');
+      const amt = Number(input.value);
+      const err = validateAmount(amt);
+      if (err) { msg.textContent = err; msg.className = 'msg err'; return; }
+      balance += amt;
+      updateBalance();
+      addHistory('Deposit', amt);
+      msg.textContent = 'Deposit successful'; msg.className = 'msg ok';
+      input.value = '';
+    });
+
+    document.getElementById('withBtn').addEventListener('click', () => {
+      const input = document.getElementById('withAmt');
+      const msg = document.getElementById('withMsg');
+      const amt = Number(input.value);
+      const err = validateAmount(amt);
+      if (err) { msg.textContent = err; msg.className = 'msg err'; return; }
+      if (amt > balance) { msg.textContent = 'Insufficient balance'; msg.className = 'msg err'; return; }
+      balance -= amt;
+      updateBalance();
+      addHistory('Withdraw', -amt);
+      msg.textContent = 'Withdrawal successful'; msg.className = 'msg ok';
+      input.value = '';
+    });
+
+    updateBalance();
+  </script>
+</body>
+</html>
